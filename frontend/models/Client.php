@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\behaviors\BlameableBehavior;
+use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
 /**
@@ -41,7 +43,7 @@ class Client extends ActiveRecord
     public function rules(): array
     {
         return [
-            [['name', 'is_male', 'date_of_birth', 'creator_id', 'created_at'], 'required'],
+            [['name', 'is_male', 'date_of_birth'], 'required'],
             [['is_male', 'creator_id', 'created_at', 'updater_id', 'updated_at', 'deleter_id', 'deleted_at'], 'integer'],
             [['date_of_birth'], 'safe'],
             [['name'], 'string', 'max' => 255],
@@ -106,6 +108,23 @@ class Client extends ActiveRecord
     public function getSexAlias(): string
     {
         return $this->is_male ? 'Муж.' : 'Жен.';
+    }
+
+    public function behaviors(): array
+    {
+        return [
+            [
+                'class' => BlameableBehavior::class,
+                'createdByAttribute' => 'creator_id',
+                'updatedByAttribute' => 'updater_id',
+            ],
+            [
+                'class' => TimestampBehavior::class,
+                'createdAtAttribute' => 'created_at',
+                'updatedAtAttribute' => 'updated_at',
+                'value' => time(),
+            ],
+        ];
     }
 
     /**

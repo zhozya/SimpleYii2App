@@ -3,6 +3,7 @@
 namespace app\models;
 
 use yii\base\Model;
+use yii\data\ActiveDataProvider;
 
 class ClubFilterForm extends Model
 {
@@ -23,5 +24,31 @@ class ClubFilterForm extends Model
             'name' => 'Название',
             'isShowDeleted' => 'Архив',
         ];
+    }
+
+    public function search(array $requestData): ActiveDataProvider
+    {
+        $this->load($requestData);
+
+        $query = Club::find();
+
+        if ($this->name) {
+            $query->andWhere(['like', 'name', $this->name]);
+        }
+        if (!$this->isShowDeleted) {
+            $query->andWhere(['deleted_at' => null]);
+        }
+
+        return new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 50
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                ]
+            ],
+        ]);
     }
 }

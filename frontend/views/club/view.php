@@ -30,7 +30,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'formatter' => [
             'class' => '\yii\i18n\Formatter',
-            'datetimeFormat' => 'dd.mm.YYYY HH:mm:ss',
+            'datetimeFormat' => 'dd.MM.YYYY HH:mm:ss',
         ],
         'attributes' => [
             'id',

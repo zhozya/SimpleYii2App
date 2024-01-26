@@ -28,14 +28,14 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php Pjax::begin(); ?>
 
     <?php $form = ActiveForm::begin([
-        'method' => 'POST',
+        'method' => 'GET',
         'options' => ['data' => ['pjax' => 1]],
         'action' => ['index'],
     ]); ?>
 
     <?= $form->field($filterForm, 'name')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($filterForm, 'isMale')->radioList([1 => 'Мужчина', 0 => 'Женщина']) ?>
+    <?= $form->field($filterForm, 'sex')->radioList(['male' => 'Мужчина', 'female' => 'Женщина']) ?>
 
     <?= $form
         ->field($filterForm, 'dateRange', [
@@ -65,7 +65,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'formatter' => [
             'class' => '\yii\i18n\Formatter',
-            'datetimeFormat' => 'dd.mm.YYYY HH:mm:ss',
+            'datetimeFormat' => 'dd.MM.YYYY HH:mm:ss',
         ],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],

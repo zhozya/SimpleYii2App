@@ -5,11 +5,9 @@ namespace frontend\controllers;
 use app\models\Client;
 use app\models\ClientClubs;
 use app\models\ClientFilterForm;
+use app\models\ClientForm;
 use app\models\Club;
-use app\models\ClubFilterForm;
 use Yii;
-use yii\data\ActiveDataProvider;
-use yii\db\Exception;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -62,35 +60,7 @@ class ClientController extends Controller
     public function actionIndex()
     {
         $filterForm = new ClientFilterForm();
-        $filterForm->load($this->request->post());
-
-        $query = Client::find()->where(['deleted_at' => null])->with('clubs');
-        if ($filterForm->name) {
-            $query->andWhere(['like', 'name', $filterForm->name]);
-        }
-        if (
-            !is_null($filterForm->isMale) &&
-            isset($this->request->post('ClientFilterForm')['isMale']) &&
-            $this->request->post('ClientFilterForm')['isMale'] !== ''
-        ) {
-            $query->andWhere(['is_male' => $filterForm->isMale]);
-        }
-        if ($filterForm->validateDateRange()) {
-            $query->andWhere(['between', 'date_of_birth', $filterForm->getDateStart(), $filterForm->getDateEnd()]);
-        }
-
-
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 50
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    'id' => SORT_DESC,
-                ]
-            ],
-        ]);
+        $dataProvider = $filterForm->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -118,31 +88,15 @@ class ClientController extends Controller
      */
     public function actionCreate()
     {
-        $request = $this->request;
-        $model = new Client();
+        $model = new ClientForm();
         $clubs = Club::findAllActive();
 
-        if ($request->isPost && $model->load($request->post())) {
-            try {
-                $model->creator_id = Yii::$app->user->id;
-                $model->created_at = time();
-
-                $clubsIDs = null;
-                if (
-                    isset($request->post('Client')['clubs']) &&
-                    is_array($request->post('Client')['clubs'])
-                ) {
-                    $clubsIDs = $request->post('Client')['clubs'];
-                }
-
-                if ($model->saveWithClubs($clubsIDs)) {
-                    return $this->redirect(['view', 'id' => $model->id]);
-                }
-            } catch (\Throwable $e) {
-                Yii::$app->session->setFlash('error', $e->getMessage());
+        try {
+            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
             }
-        } else {
-            $model->loadDefaultValues();
+        } catch (\Throwable $e) {
+            Yii::$app->session->setFlash('error', $e->getMessage());
         }
 
         return $this->render('create', [
@@ -160,34 +114,21 @@ class ClientController extends Controller
      */
     public function actionUpdate($id)
     {
-        $request = $this->request;
-        $model = $this->findModel($id);
+        $model = new ClientForm();
+        $model->loadClientData($this->findModel($id));
         $clubs = Club::findAllActive();
 
-        if ($request->isPost && $model->load($request->post())) {
-            try {
-                $model->updater_id = Yii::$app->user->id;
-                $model->updated_at = time();
-
-                $clubsIDs = null;
-                if (
-                    isset($request->post('Client')['clubs']) &&
-                    is_array($request->post('Client')['clubs'])
-                ) {
-                    $clubsIDs = $request->post('Client')['clubs'];
-                }
-
-                if ($model->saveWithClubs($clubsIDs)) {
-                    return $this->redirect(['view', 'id' => $model->id]);
-                }
-            } catch (\Throwable $e) {
-                Yii::$app->session->setFlash('error', $e->getMessage());
+        try {
+            if ($model->load(Yii::$app->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
             }
+        } catch (\Throwable $e) {
+            Yii::$app->session->setFlash('error', $e->getMessage());
         }
 
         return $this->render('update', [
             'model' => $model,
-            'clubs' => $clubs
+            'clubs' => $clubs,
         ]);
     }
 

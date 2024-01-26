@@ -3,18 +3,18 @@
 namespace app\models;
 
 use yii\base\Model;
+use yii\data\ActiveDataProvider;
 
 class ClientFilterForm extends Model
 {
     public ?string $name = null;
-    public mixed $isMale = null;
+    public ?string $sex = null;
     public ?string $dateRange = null;
 
     public function rules(): array
     {
         return [
-            [['name', 'dateRange'], 'string', 'max' => 255],
-            [['isMale'], 'integer'],
+            [['name', 'dateRange', 'sex'], 'string', 'max' => 255],
             [['dateRange'], 'match', 'pattern' => '/^\d{4}-\d{2}-\d{2} - \d{4}-\d{2}-\d{2}$/i'],
         ];
     }
@@ -23,9 +23,42 @@ class ClientFilterForm extends Model
     {
         return [
             'name' => 'ФИО',
-            'isMale' => 'Пол',
+            'sex' => 'Пол',
             'dateRange' => 'Дата рождения'
         ];
+    }
+
+    public function search(array $requestData): ActiveDataProvider
+    {
+        $this->load($requestData);
+
+        $query = Client::find()
+            ->where(['deleted_at' => null])
+            ->with('clubs');
+
+        if ($this->name) {
+            $query->andWhere(['like', 'name', $this->name]);
+        }
+
+        if ($this->sex) {
+            $query->andWhere(['is_male' => $this->sex === 'male' ? 1 : 0]);
+        }
+
+        if ($this->validateDateRange()) {
+            $query->andWhere(['between', 'date_of_birth', $this->getDateStart(), $this->getDateEnd()]);
+        }
+
+        return new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 50
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                ]
+            ],
+        ]);
     }
 
     public function getDateStart(): ?string

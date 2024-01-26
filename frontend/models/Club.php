@@ -2,7 +2,11 @@
 
 namespace app\models;
 
+use yii\behaviors\BlameableBehavior;
+use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use yii\db\BaseActiveRecord;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "club".
@@ -40,7 +44,7 @@ class Club extends ActiveRecord
     {
         return [
             [['name', 'address'], 'trim'],
-            [['name', 'address', 'creator_id', 'created_at'], 'required'],
+            [['name', 'address'], 'required'],
             [['creator_id', 'created_at', 'updater_id', 'updated_at', 'deleter_id', 'deleted_at'], 'integer'],
             [['name'], 'string', 'min' => 4, 'max' => 255],
             [['address'], 'string'],
@@ -65,7 +69,24 @@ class Club extends ActiveRecord
         ];
     }
 
-    public static function findAllActive()
+    public function behaviors(): array
+    {
+        return [
+            [
+                'class' => BlameableBehavior::class,
+                'createdByAttribute' => 'creator_id',
+                'updatedByAttribute' => 'updater_id',
+            ],
+            [
+                'class' => TimestampBehavior::class,
+                'createdAtAttribute' => 'created_at',
+                'updatedAtAttribute' => 'updated_at',
+                'value' => time(),
+            ],
+        ];
+    }
+
+    public static function findAllActive(): array
     {
         return self::findAll(['deleted_at' => null]);
     }

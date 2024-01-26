@@ -59,28 +59,7 @@ class ClubController extends Controller
     public function actionIndex()
     {
         $filterForm = new ClubFilterForm();
-        $filterForm->load($this->request->get());
-
-        $query = Club::find();
-        if ($filterForm->name) {
-            $query->andWhere(['like', 'name', $filterForm->name]);
-        }
-        if (!$filterForm->isShowDeleted) {
-            $query->andWhere(['deleted_at' => null]);
-        }
-
-
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 50
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    'id' => SORT_DESC,
-                ]
-            ],
-        ]);
+        $dataProvider = $filterForm->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -109,16 +88,8 @@ class ClubController extends Controller
     public function actionCreate()
     {
         $model = new Club();
-
-        if ($this->request->isPost && $model->load($this->request->post())) {
-            $model->creator_id = Yii::$app->user->id;
-            $model->created_at = time();
-
-            if ($model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-            $model->loadDefaultValues();
+        if ($model->load($this->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
         }
 
         return $this->render('create', [
@@ -136,14 +107,8 @@ class ClubController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
-        if ($this->request->isPost && $model->load($this->request->post())) {
-            $model->updater_id = Yii::$app->user->id;
-            $model->updated_at = time();
-
-            if ($model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
+        if ($model->load($this->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
         }
 
         return $this->render('update', [

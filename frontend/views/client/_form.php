@@ -18,9 +18,9 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'is_male')->radioList([1 => 'Мужчина', 0 => 'Женщина']) ?>
+    <?= $form->field($model, 'isMale')->radioList([1 => 'Мужчина', 0 => 'Женщина']) ?>
 
-    <?= $form->field($model, 'date_of_birth')->widget(DatePicker::class, [
+    <?= $form->field($model, 'dateOfBirth')->widget(DatePicker::class, [
         'options' => ['class' => 'form-control'],
         'dateFormat' => 'yyyy-MM-dd',
     ]) ?>
